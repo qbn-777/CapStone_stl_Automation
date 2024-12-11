@@ -1,0 +1,3 @@
+The first step in generating a Voronoi honeycomb is to define the bounding area, A, in which 
+nucleation points are contained, and the number of desired nuclei, n (University of Toronto, 2018)
+

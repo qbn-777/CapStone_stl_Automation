@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 from matplotlib.path import Path
+import seedMaxDis as smd
 
 def csbinproc(xp, yp, n):
     """
@@ -41,7 +42,8 @@ def main():
     ratio = 0.1
     n = 314
     A = 50 * 50  # Basal area
-    r = np.sqrt((2 * A) / (np.sqrt(3) * n))
+    r=smd.seedMaxDis(A, n)
+      
     s = ratio * r
 
     # Generate the vertices for the regions

@@ -7,7 +7,7 @@ def seedMaxDis(Area, numSeed):
 
     #Type check for Area, numSeed
     #Area must be a number larger or equal to 0
-    if type(Area) is not float :
+    if type(Area) is not float and type(Area) is not int:
         raise TypeError("Area must be a number")
     if Area<0:
         raise ValueError("Area must be larger or equal to 0")
