@@ -4,6 +4,7 @@ from scipy.spatial.distance import pdist, squareform
 from matplotlib.path import Path
 import seedMaxDis as smd
 
+
 def csbinproc(xp, yp, n):
     """
     Generate homogeneous 2-D Poisson process within a polygon.
