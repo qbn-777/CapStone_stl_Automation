@@ -10,21 +10,27 @@ def csbinproc(xp, yp, n):
     Generate homogeneous 2-D Poisson process within a polygon.
     
     Parameters:
-        xp, yp: Coordinates of the polygon vertices.
-        n: Number of points to generate.
+        xp (list or np.ndarray): x-coordinates of the polygon vertices.
+        yp (list or np.ndarray): y-coordinates of the polygon vertices.
+        n (int): Number of points to generate.
 
     Returns:
         x, y: Coordinates of the points generated inside the polygon.
     """
     x = []
     y = []
-    minx, maxx = min(xp), max(xp)
-    miny, maxy = min(yp), max(yp)
+    
+    minx, maxx = min(xp), max(xp) # Min and max x-coordinates of the polygon 
+    miny, maxy = min(yp), max(yp) # Min and max y-coordinates of the polygon
+    
+    # While loop only stops when n points are generated
+    # Which only possible when in_polygon returns ?
     
     while len(x) < n:
+        # Generate random points within the bounding box of the polygon
         xt = np.random.uniform(minx, maxx)
         yt = np.random.uniform(miny, maxy)
-        if in_polygon(xt, yt, xp, yp):
+        if in_polygon(xt, yt, xp, yp) == True:
             x.append(xt)
             y.append(yt)
     
@@ -33,9 +39,14 @@ def csbinproc(xp, yp, n):
 def in_polygon(x, y, xp, yp):
     """
     Check if a point (x, y) is inside a polygon defined by vertices (xp, yp).
+    This function is compatible for checking any abitrary 2D shape, with n number of vertices
     """
-   
+    # Create a Path object from the vertices
+    # This function stacks the xp,and yp array into an array of shape (n, 2)
+    # Where n is the number of vertices (eg, 5 for polygon)
     polygon = Path(np.column_stack((xp, yp)))
+
+    # Check if the point is inside the polygon (Boolean output)
     return polygon.contains_point((x, y))
 
 def main():
@@ -80,10 +91,13 @@ def main():
     plt.grid(True)
     plt.show()
 
-    # Optional: Write to CSV
+    # Optional: Write to CSV with relative path 
     np.savetxt("XTRAWIDE_50x50_n314_0.1_NEW.csv", np.hstack((X, np.zeros((X.shape[0], 1)))), delimiter=",")
+    
 
 if __name__ == "__main__":
-    for i in range(5):
-        main()
-        print("Iteration", i + 1)
+        for i in range(5):
+            main()
+            print("Iteration", i + 1) 
+   
+    
