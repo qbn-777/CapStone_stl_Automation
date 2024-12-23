@@ -51,3 +51,15 @@ class PoissonProcess:
         """
         polygon = Path(np.column_stack((self.xp, self.yp)))
         return polygon.contains_point((x, y))
+    
+    def getAreaQUAD(self):
+        """
+        Get the area of a Quadrilateral.
+        
+        Returns:
+            float: Area of the Quadrilateral.
+        """
+        Xdiff=np.max(self.xp)-np.min(self.xp)  
+        Ydiff=np.max(self.yp)-np.min(self.yp)
+        return Xdiff*Ydiff
+        

@@ -10,7 +10,9 @@ from matplotlib.path import Path
 import numpy as np
 
 def main():
-    #Run for simple csbinproc allogrithm, this will work for ratio less than 0.3, but takes long time for the rest    xRecMin = 0
+    # Run for simple csbinproc algorithm.
+    # This will work for ratio less than 0.3,
+    xRecMin = 0
     # Parameters
     xRecMin=0
     xRecMax = 50
@@ -21,15 +23,16 @@ def main():
 
 
     # (xp1,yp1),(xp2,yp2),(xp3,yp3),(xp4,yp4)
-    # (0,0),(50,0),(50,50),(0,50) last (0,0) is to ensure the polygon is closed
-    xp=[xRecMin, xRecMax, xRecMax, xRecMin, xRecMin]
-    yp=[yRecMin,yRecMin, yRecMax, yRecMax, yRecMin]
+    # (0,0),(50,0),(50,50),(0,50) last (0,0) 
+    xp=[xRecMin, xRecMax, xRecMax, xRecMin]
+    yp=[yRecMin,yRecMin, yRecMax, yRecMax]
     
     # Create the PoissonProcess object
     allocator = pp(xp, yp)
     
     
-    A= Path.area(Path(np.column_stack((xp, yp)))) # Basal area
+    A= allocator.getAreaQUAD()
+    
     print ("Area of the polygon is", A)
 if __name__ == "__main__":
 
