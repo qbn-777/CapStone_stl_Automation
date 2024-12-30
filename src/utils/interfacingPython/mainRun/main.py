@@ -31,7 +31,7 @@ def main(xRecMin, xRecMax, yRecMin, yRecMax, ratio, n, maxIter):
         print ("Ratio is", r)
         s = r * smd(A, n)
         X = np.zeros((n, 2)) #An array of zeros with n rows and 2 columns (x and y coordinates)
-        
+    
         X=allocator.generate_points(n=1) #This function return 2 array
         print (X)
   
