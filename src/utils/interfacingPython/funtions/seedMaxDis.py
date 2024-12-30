@@ -5,19 +5,6 @@ def seedMaxDis(Area, numSeed):
     # numSeed is the number of seeds to be planted
     # Returns the maximum distance between the seeds
 
-    #Type check for Area, numSeed
-    #Area must be a number larger or equal to 0
-    if type(Area) is not float and type(Area) is not int:
-        raise TypeError("Area must be a number")
-    if Area<0:
-        raise ValueError("Area must be larger or equal to 0")
-    
-    #numSeed must be an integer larger than 0
-    if type(numSeed) is not int:
-        raise TypeError("numSeed must be an integer")
-    if numSeed<=0:
-        raise ValueError("numSeed must be larger than 0")
-    
     """ Refer to Appendix A - Designing for Disorder: The Mechanical Behaviour of 
     Bioinspired, Stochastic Honeycomb Materials  by Derek Alexandre Aranguren van Egmond (University of Toronto, 2018) """
     rMax=math.sqrt(2*Area/numSeed*math.sqrt(3)) 

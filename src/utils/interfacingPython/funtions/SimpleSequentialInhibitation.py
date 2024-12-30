@@ -60,7 +60,7 @@ def in_polygon(x, y, xp, yp):
 
 def main():
     # Parameters
-    ratio = 0.5
+    ratio = 0.4
     n = 314
     A = 50 * 50  # Basal area
     r=smd.seedMaxDis(A, n)
@@ -107,7 +107,7 @@ def main():
 
 def main2():
     # Parameters
-    ratio = 0.8
+    ratio = 0.5
     n = 314
     A = 50 * 50  # Area of the bounding polygon
     r = smd.seedMaxDis(A, n)
@@ -125,7 +125,7 @@ def main2():
     i = 1
 
     # Generate points with KDTree for distance checking
-    max_attempts = 1000  # Limit retries to avoid infinite loops
+    max_attempts = 100000  # Limit retries to avoid infinite loops
     attempts = 0
 
     while i < n:

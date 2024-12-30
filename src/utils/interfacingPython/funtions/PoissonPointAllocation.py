@@ -18,25 +18,23 @@ class PoissonProcess:
     def generate_points(self, n):
         """
         Generate homogeneous 2-D Poisson process within the polygon.
-        
         Parameters:
             n (int): Number of points to generate.
         
         Returns:
             x, y: Coordinates of the points generated inside the polygon.
         """
-        x = []
-        y = []
+        #Empty list to store the x and y coordinates
+        PointList = []
         
-        while len(x) < n:
+        while len(PointList) < n:
             # Generate random points within the bounding box of the polygon
             xt = np.random.uniform(self.minx, self.maxx)
             yt = np.random.uniform(self.miny, self.maxy)
             if self.in_polygon(xt, yt):
-                x.append(xt)
-                y.append(yt)
-        
-        return np.array(x), np.array(y)
+                PointList.append([xt, yt])
+
+        return PointList
 
     def in_polygon(self, x, y):
         """
@@ -61,5 +59,5 @@ class PoissonProcess:
         """
         Xdiff=np.max(self.xp)-np.min(self.xp)  
         Ydiff=np.max(self.yp)-np.min(self.yp)
-        return Xdiff*Ydiff
+        return Xdiff*Ydiff # This need to be type int
         
