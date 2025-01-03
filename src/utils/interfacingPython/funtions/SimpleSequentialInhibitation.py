@@ -60,14 +60,14 @@ def in_polygon(x, y, xp, yp):
 
 def main():
     # Parameters
-    ratio = 0.4
+    ratio = 0.1
     n = 314
     A = 50 * 50  # Basal area
     r=smd.seedMaxDis(A, n)
     print("Seed max dis", r)
       
     s = ratio * r
-
+    print("Inhibitation Distance/Minimum dis betwwen seeds", s)
     # Generate the vertices for the regions
     rx = [0, 50, 50, 0,0]
     ry = [0, 0, 50, 50,0]
@@ -75,7 +75,7 @@ def main():
     # Generate the first event
     X = np.zeros((n, 2))
     X[0, :] = np.column_stack(csbinproc(rx, ry, 1))[0]
-    i = 1
+    i = 1 # Counter for the number of events
 
     # Generate other events
     while i < n:
@@ -86,6 +86,7 @@ def main():
         if len(ind) == 0:
             X[i, :] = [sx[0], sy[0]]
             i += 1
+            print(i)
 
     # Verify and plot
     dist = pdist(X)
@@ -102,7 +103,7 @@ def main():
     plt.show()
 
     # Optional: Write to CSV with relative path 
-    np.savetxt("XTRAWIDE_50x50_n314_0.1_NEW.csv", np.hstack((X, np.zeros((X.shape[0], 1)))), delimiter=",")
+    np.savetxt("test02.csv", np.hstack((X, np.zeros((X.shape[0], 1)))), delimiter=",")
     
 
 def main2():
@@ -137,12 +138,7 @@ def main2():
             i += 1
             tree = KDTree(X[:i, :])  # Update the KDTree with the new point
             attempts = 0  # Reset attempts
-        else:
-            attempts += 1
-            if attempts >= max_attempts:
-                print(f"Relaxing constraint at point {i} after {max_attempts} failed attempts.")
-                s *= 0.9  # Relax the constraint by 10%
-                attempts = 0
+       
 
     # Verify and plot
     plt.scatter(X[:, 0], X[:, 1], s=10, c='blue')
@@ -152,10 +148,76 @@ def main2():
     plt.grid(True)
     plt.show()
 
+def main3():
+    # Parameters
+    ratio = 0.1
+    n = 314
+    A = 50 * 50  # Basal area
+    r = smd.seedMaxDis(A, n)
+    print("Seed max dis", r)
+      
+    s = ratio * r
+    print("Inhibitation Distance/Minimum dis betwwen seeds", s)
+    # Generate the vertices for the regions
+    rx = [0, 50, 50, 0, 0]
+    ry = [0, 0, 50, 50, 0]
 
+    # Generate the first event
+    X = np.zeros((n, 2))
+    X[0, :] = np.column_stack(csbinproc(rx, ry, 1))[0]
+    i = 1  # Counter for the number of events
+
+    # Set up the plot
+    plt.ion()  # Turn on interactive mode
+    fig, ax = plt.subplots()
+    scatter = ax.scatter(X[:, 0], X[:, 1], s=10, c='blue')
+    ax.set_title("Simple Sequential Inhibition Process")
+    ax.set_xlabel("X (mm)")
+    ax.set_ylabel("Y (mm)")
+    ax.grid(True)
+    plt.xlim(0, 50)
+    plt.ylim(0, 50)
+    plt.draw()
+
+    # Generate other events
+    while i < n:
+
+        # Generate a random point inside the rx,ry region
+        sx, sy = csbinproc(rx, ry, 1)
+
+        #Prepare input for pdist() for checking pairwise distances
+        xt = np.vstack(([sx[0], sy[0]], X[:i, :]))
+        dist = pdist(xt)
+        ind = np.where(dist[:i] <= s)[0]
+        if len(ind) == 0:
+            X[i, :] = [sx[0], sy[0]]
+            i += 1
+           
+            # Update the plot
+            scatter.set_offsets(X)
+            plt.draw()
+            plt.pause(0.1)  # Pause to update the plot
+
+    # Verify and plot final result
+    dist = pdist(X)
+    print("dist shape", np.shape(dist))
+    delhat = np.min(dist)
+    xx = X[:, 0]
+    yy = X[:, 1]
+
+    # Final plot
+    plt.ioff()  # Turn off interactive mode
+    plt.scatter(xx, yy, s=10, c='blue')
+    plt.title("Simple Sequential Inhibition Process")
+    plt.xlabel("X (mm)")
+    plt.ylabel("Y (mm)")
+    plt.grid(True)
+    plt.show()
+
+    #np.savetxt("test2000PointsR_0_1.csv", np.hstack((X, np.zeros((X.shape[0], 1)))), delimiter=",")
 if __name__ == "__main__":
-        for i in range(5):
-            main2()
-            print("Iteration", i + 1) 
+        
+ main3()
+            
    
     

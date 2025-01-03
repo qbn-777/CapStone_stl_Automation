@@ -12,7 +12,8 @@ import numpy as np
 def main(xRecMin, xRecMax, yRecMin, yRecMax, ratio, n, maxIter):
     # Run for simple poisson point generation then check for distance requirement
 
-    # This will work for ratio less than 0.3,
+    # SIMPLE SEQUENTIAL INHIBITION PROCESS%% 
+    #For 50x50 surface, with n=314 seeds, delta = s/r = 0.1
 
     xp=[xRecMin, xRecMax, xRecMax, xRecMin]
     yp=[yRecMin,yRecMin, yRecMax, yRecMax]
@@ -26,14 +27,17 @@ def main(xRecMin, xRecMax, yRecMin, yRecMax, ratio, n, maxIter):
     print ("Area of the polygon is", A)
     print ("Area type", type(A))
     
-    # Loop through the ratios   
-    for r in ratio:
-        print ("Ratio is", r)
-        s = r * smd(A, n)
-        X = np.zeros((n, 2)) #An array of zeros with n rows and 2 columns (x and y coordinates)
+   
+    s = ratio * smd(A, n)  
+    X = np.zeros((n, 2)) #An array of zeros with n rows and 2 columns (x and y coordinates)
+
+    X=allocator.generate_points(n=1) #This function return 2 array
+    i=1 #Counter for the number of events
     
-        X=allocator.generate_points(n=1) #This function return 2 array
-        print (X)
+    # Loop stay active until the number of points generated is equal to n
+    while i < n:
+        P=allocator.generate_points(n=1)
+
   
 
 if __name__ == "__main__":
