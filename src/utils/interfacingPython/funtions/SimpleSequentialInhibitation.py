@@ -67,7 +67,8 @@ def main():
     print("Seed max dis", r)
       
     s = ratio * r
-    print("Inhibitation Distance/Minimum dis betwwen seeds", s)
+    print("Inhibitation Distance/Minimum dis between seeds", s)
+
     # Generate the vertices for the regions
     rx = [0, 50, 50, 0,0]
     ry = [0, 0, 50, 50,0]
@@ -92,7 +93,7 @@ def main():
     dist = pdist(X)
     delhat = np.min(dist)
     xx = X[:, 0]
-    yy = X[:, 1]
+    yy = X[:, 1] 
 
     # Plotting
     plt.scatter(xx, yy, s=10, c='blue')
@@ -149,6 +150,8 @@ def main2():
     plt.show()
 
 def main3():
+    # Example for plotting the points as they are generated, hence "Interactive"
+
     # Parameters
     ratio = 0.1
     n = 314
@@ -169,9 +172,9 @@ def main3():
 
     # Set up the plot
     plt.ion()  # Turn on interactive mode
-    fig, ax = plt.subplots()
-    scatter = ax.scatter(X[:, 0], X[:, 1], s=10, c='blue')
-    ax.set_title("Simple Sequential Inhibition Process")
+    fig, ax = plt.subplots()    
+    scatter = ax.scatter(X[:, 0], X[:, 1], s=3, c='blue') # X = All Rows of 0th column and Y = All Rows of 1st column
+    ax.set_title(f"Simple Sequential Inhibition Process for Regular Regularity = {ratio}")
     ax.set_xlabel("X (mm)")
     ax.set_ylabel("Y (mm)")
     ax.grid(True)
@@ -179,7 +182,7 @@ def main3():
     plt.ylim(0, 50)
     plt.draw()
 
-    # Generate other events
+    # This loop only stops when n points are generated that are satisfying the inhibitation distance Limitation
     while i < n:
 
         # Generate a random point inside the rx,ry region
@@ -188,26 +191,28 @@ def main3():
         #Prepare input for pdist() for checking pairwise distances
         xt = np.vstack(([sx[0], sy[0]], X[:i, :]))
         dist = pdist(xt)
+        #print("dist shape", np.shape(dist))
+
+        #Store indices of points that are within the inhibitation distance
+        #Refer to whole array up to i index, and taking the first row of the tupple
         ind = np.where(dist[:i] <= s)[0]
+        
+        # If no points are within the inhibitation distance, add the new point to the Main array 
         if len(ind) == 0:
             X[i, :] = [sx[0], sy[0]]
             i += 1
-           
             # Update the plot
             scatter.set_offsets(X)
             plt.draw()
             plt.pause(0.1)  # Pause to update the plot
 
     # Verify and plot final result
-    dist = pdist(X)
-    print("dist shape", np.shape(dist))
-    delhat = np.min(dist)
     xx = X[:, 0]
     yy = X[:, 1]
 
     # Final plot
     plt.ioff()  # Turn off interactive mode
-    plt.scatter(xx, yy, s=10, c='blue')
+    plt.scatter(xx, yy, s=3, c='blue') #This s is the size of the points not the inhibitation distance
     plt.title("Simple Sequential Inhibition Process")
     plt.xlabel("X (mm)")
     plt.ylabel("Y (mm)")
@@ -216,8 +221,7 @@ def main3():
 
     #np.savetxt("test2000PointsR_0_1.csv", np.hstack((X, np.zeros((X.shape[0], 1)))), delimiter=",")
 if __name__ == "__main__":
-        
- main3()
+    main3()
             
    
     
