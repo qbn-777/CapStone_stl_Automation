@@ -4,6 +4,9 @@ from scipy.spatial.distance import pdist, squareform
 from matplotlib.path import Path
 import seedMaxDis as smd
 from scipy.spatial import KDTree
+import os
+from datetime import datetime
+import time
 
 def csbinproc(xp, yp, n):
     """
@@ -108,6 +111,7 @@ def main():
     
 
 def main2():
+    #Implementation uisng KDTree for distance checking
     # Parameters
     ratio = 0.5
     n = 314
@@ -219,9 +223,82 @@ def main3():
     plt.grid(True)
     plt.show()
 
-    #np.savetxt("test2000PointsR_0_1.csv", np.hstack((X, np.zeros((X.shape[0], 1)))), delimiter=",")
+
+def main4(ratio):
+    #Example run for multiple ratios
+
+    # Parameters
+    n = 314
+    A = 50 * 50  # Basal area
+    r = smd.seedMaxDis(A, n)
+   
+      
+    s = ratio * r
+   
+    # Generate the vertices for the regions
+    rx = [0, 50, 50, 0, 0]
+    ry = [0, 0, 50, 50, 0]
+
+    # Generate the first event
+    X = np.zeros((n, 2))
+    X[0, :] = np.column_stack(csbinproc(rx, ry, 1))[0]
+    i = 1  # Counter for the number of events
+
+    
+
+    # This loop only stops when n points are generated that are satisfying the inhibitation distance Limitation
+    while i < n:
+
+        # Generate a random point inside the rx,ry region
+        sx, sy = csbinproc(rx, ry, 1)
+
+        #Prepare input for pdist() for checking pairwise distances
+        xt = np.vstack(([sx[0], sy[0]], X[:i, :]))
+        dist = pdist(xt)
+        #print("dist shape", np.shape(dist))
+
+        #Store indices of points that are within the inhibitation distance
+        #Refer to whole array up to i index, and taking the first row of the tupple
+        ind = np.where(dist[:i] <= s)[0]
+        
+        # If no points are within the inhibitation distance, add the new point to the Main array 
+        if len(ind) == 0:
+            X[i, :] = [sx[0], sy[0]]
+            i += 1
+    
+
+    # Verify and plot final result
+    xx = X[:, 0]
+    yy = X[:, 1]
+
+    # Export the points to CSV files 
+    # Create the directory structure
+    base_dir = "assetss/csvFile/size50_50"
+    numP_dir = os.path.join(base_dir, f"numP_{n}")
+    ratio_dir = os.path.join(numP_dir, f"ratio_{ratio}")
+
+    # Create directories if they don't exist
+    os.makedirs(ratio_dir, exist_ok=True)
+
+    # Save the CSV file
+
+    # Generate a unique file name using a timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    csv_filename = os.path.join(ratio_dir, f"points_{timestamp}.csv")
+
+    # Save the CSV file
+    np.savetxt(csv_filename, X, delimiter=",")
+    print(f"File saved as {csv_filename}")
+
+
+    return None
+    
+
 if __name__ == "__main__":
-    main3()
+    
+    ratio=[0.45]
+    for i in range(5):
+     main4(ratio=ratio[0])
             
    
     

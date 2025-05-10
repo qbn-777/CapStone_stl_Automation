@@ -1,10 +1,14 @@
 import numpy as np
 from matplotlib.path import Path
-
-class PoissonProcess:
+import math
+from scipy.spatial.distance import pdist
+import os
+from datetime import datetime
+import time
+class PointAllocationProcess:
     def __init__(self, xp, yp):
         """
-        Initialize the PoissonProcess with the polygon vertices.
+        Initialise the Process with the polygon vertices.
         
         Parameters:
             xp (list or np.ndarray): x-coordinates of the polygon vertices.
@@ -14,7 +18,7 @@ class PoissonProcess:
         self.yp = yp
         self.minx, self.maxx = min(xp), max(xp) # Min and max x-coordinates of the polygon 
         self.miny, self.maxy = min(yp), max(yp) # Min and max y-coordinates of the polygon
-
+        
     def generate_points(self, n):
         """
         Generate homogeneous 2-D Poisson process within the polygon.
@@ -22,19 +26,22 @@ class PoissonProcess:
             n (int): Number of points to generate.
         
         Returns:
-            x, y: Coordinates of the points generated inside the polygon.
+            np.ndarray: Coordinates of the points generated inside the polygon.
         """
-        #Empty list to store the x and y coordinates
-        PointList = []
+        # Initialize an array to store the coordinates
+        points = np.zeros((n, 2))
         
-        while len(PointList) < n:
+        count = 0
+        while count < n:
             # Generate random points within the bounding box of the polygon
             xt = np.random.uniform(self.minx, self.maxx)
             yt = np.random.uniform(self.miny, self.maxy)
             if self.in_polygon(xt, yt):
-                PointList.append([xt, yt])
+                points[count, 0] = xt
+                points[count, 1] = yt
+                count += 1
 
-        return PointList
+        return points
 
     def in_polygon(self, x, y):
         """
@@ -52,12 +59,122 @@ class PoissonProcess:
     
     def getAreaQUAD(self):
         """
-        Get the area of a Quadrilateral.
-        
+        Get the area of a Rectangle or Square.
+        This method use dimension provided when class is initialised.
+
         Returns:
-            float: Area of the Quadrilateral.
+            float: Area of the Rectangle or Square.
         """
         Xdiff=np.max(self.xp)-np.min(self.xp)  
         Ydiff=np.max(self.yp)-np.min(self.yp)
-        return Xdiff*Ydiff # This need to be type int
+        return Xdiff*Ydiff 
         
+    def SeedMaxDis(self,Area,numP):
+        """
+        Get the maximum distance between the seeds.
+        
+        Parameters:
+            numP (int): Number of seeds.
+            Area (float): Area of the polygon.
+        Returns:
+            float: Maximum distance between the seeds.
+        """
+        return math.sqrt(2*Area/numP*math.sqrt(3)) 
+    
+    def exampleRun(self,numP,ratio):
+        """
+        Example run of the using the class for a Rectangle
+        This limitation is due to the getAreaQUAD() method
+    
+        Parameters:
+            numP (int): Number of seeds.
+            ratio (float): Ratio of the area to be covered.
+        """
+        # Get the area of the Square/Rectangle
+        # Can replace this with a method that calculates the area of any polygon
+        # Or input directly area 
+        Area=self.getAreaQUAD()     
+
+        # Get the maximum distance between the seeds
+        seedMaxDis=self.SeedMaxDis(Area,numP)
+        
+        # Get the inhibitation distance (minimum distance between seeds)
+        inhibitationDis=ratio*seedMaxDis
+        
+        # Generate the first event(Seed)
+        X = np.zeros((numP, 2)) #Array to store the chosen points
+        ## index 0 to ensure the point [XY] correctly assigned,
+        ## eventhough only one point is generated that satify the size contraint
+        point=self.generate_points(1)[0] 
+        
+
+        X[0,0],X[0,1] =point[0],point[1] # Store the first point in the Main array
+        del point # Clear the point variable
+        i = 1  # Counter for the number of events
+  
+        # This loop only stops when numP points are generated 
+        # That satisfy the inhibitation distance Limitation
+        while i < numP:
+            # Generate a random point inside the rx,ry region   
+            point = self.generate_points(1)[0]
+            sx = point[0]
+            sy = point[1]
+
+            #Prepare input for pdist() for checking pairwise distances
+            xt = np.vstack(([sx, sy], X[:i, :]))
+            dist = pdist(xt)
+        
+            #Store indices of that are within the inhibitation distance
+            #Refer to whole array up to i index, and taking the first row of the tupple
+            ind = np.where(dist[:i] <= inhibitationDis)[0]
+            
+            # If no points are within the inhibitation distance, add the new point to the Main array 
+            if len(ind) == 0:
+                X[i, :] = [sx, sy]
+                i += 1
+              
+        # Export the points to CSV files 
+        # Create the directory structure
+        base_dir = "assetss/csvFile/size50_50"
+        numP_dir = os.path.join(base_dir, f"numP_{numP}")
+        ratio_dir = os.path.join(numP_dir, f"ratio_{ratio}")
+
+        # Create directories if they don't exist
+        os.makedirs(ratio_dir, exist_ok=True)
+
+    
+        # Save the CSV file 
+        # Generate a unique file name using a timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        csv_filename = os.path.join(ratio_dir, f"points_{timestamp}.csv")
+
+        # Save the CSV file
+        np.savetxt(csv_filename, X, delimiter=",")
+        print(f"File saved as {csv_filename}")
+
+        return None
+    
+
+if __name__ == "__main__":
+    typeNumb=5
+    ratio=[0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,
+           0.2,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,
+           0.3,0.31,0.32,0.33,0.34,0.35,0.36,0.37,0.38,0.39,
+           0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47,0.48,0.49,
+           0.5,0.51,0.52,0.53,0.54,0.55,0.56,0.57,0.58,0.59,] # ratio of the regularity to loop through
+    numP=314
+    xp=[0, 50, 50, 0,0]
+    yp=[0, 0, 50, 50,0]
+    # Create the PoissonProcess object( Refer to class for functionalities)
+    Run= PointAllocationProcess(xp,yp)
+
+    for r in ratio:
+        for i in range(typeNumb):
+         #Take the current time
+         time1 = time.time()
+         Run.exampleRun(numP,r)
+        #Take the current time
+        time2 = time.time()
+        #Find time Difference
+        timeDiff = time2 - time1
+        #Find average time by taking time diff divided by typeNumb

@@ -99,6 +99,7 @@ class populate2DClass:
         np.savetxt("XTRAWIDE_50x50_n314_0.1_NEW.csv", np.hstack((X, np.zeros((X.shape[0], 1)))), delimiter=",")
 
     if __name__ == "__main__":
+    
     mainRun=populate2DClass()
 
     for i in range(5):
