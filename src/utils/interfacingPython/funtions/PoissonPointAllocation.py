@@ -155,20 +155,59 @@ class PointAllocationProcess:
         return None
     
 
+    def exampleRun_s1(self, numP, ratio, sample_index, experiment_id):
+        """
+        Run one seed generation attempt with given parameters and save to structured folder.
+        
+        Parameters:
+            numP (int): Number of seeds.
+            ratio (float): Ratio used to calculate inhibition distance.
+            sample_index (int): Index of the current sample (used for CSV naming).
+            experiment_id (str): Unique identifier for this experiment batch.
+        """
+        # Calculate area and distances
+        Area = self.getAreaQUAD()
+        seedMaxDis = self.SeedMaxDis(Area, numP)
+        inhibitionDis = ratio * seedMaxDis
+
+        X = np.zeros((numP, 2))  # Container for seed points
+
+        # Generate the first point
+        point = self.generate_points(1)[0]
+        X[0, :] = point
+        i = 1
+
+        while i < numP:
+            point = self.generate_points(1)[0]
+            sx, sy = point[0], point[1]
+
+            xt = np.vstack(([sx, sy], X[:i, :]))
+            dist = pdist(xt)
+            ind = np.where(dist[:i] <= inhibitionDis)[0]
+
+            if len(ind) == 0:
+                X[i, :] = [sx, sy]
+                i += 1
+
+        # Directory and filename structure
+        base_dir = os.path.join("assetss", "csvFile", f"experiment_{experiment_id}")
+        ratio_dir = os.path.join(base_dir, f"ratio_{ratio:.2f}")
+        os.makedirs(ratio_dir, exist_ok=True)
+
+        csv_filename = os.path.join(ratio_dir, f"{sample_index}.csv")
+        np.savetxt(csv_filename, X, delimiter=",")
+        print(f"File saved as {csv_filename}")
+
 if __name__ == "__main__":
     typeNumb=5
-    ratio=[0.1,0.11,0.12,0.13,0.14,0.15,0.16,0.17,0.18,0.19,
-           0.2,0.21,0.22,0.23,0.24,0.25,0.26,0.27,0.28,0.29,
-           0.3,0.31,0.32,0.33,0.34,0.35,0.36,0.37,0.38,0.39,
-           0.4,0.41,0.42,0.43,0.44,0.45,0.46,0.47,0.48,0.49,
-           0.5,0.51,0.52,0.53,0.54,0.55,0.56,0.57,0.58,0.59,] # ratio of the regularity to loop through
+    ratio=[0.1 + 0.01 * i for i in range(50)]  # 0.1 to 0.59
     numP=314
     xp=[0, 50, 50, 0,0]
     yp=[0, 0, 50, 50,0]
     # Create the PoissonProcess object( Refer to class for functionalities)
     Run= PointAllocationProcess(xp,yp)
 
-    for r in ratio:
+    """ for r in ratio:
         for i in range(typeNumb):
          #Take the current time
          time1 = time.time()
@@ -177,4 +216,9 @@ if __name__ == "__main__":
         time2 = time.time()
         #Find time Difference
         timeDiff = time2 - time1
-        #Find average time by taking time diff divided by typeNumb
+        #Find average time by taking time diff divided by typeNumb """
+    experiment_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+
+    for ratio_index, r in enumerate(ratio):
+        for i in range(typeNumb):
+            Run.exampleRun_s1(numP, r, i, experiment_id)
