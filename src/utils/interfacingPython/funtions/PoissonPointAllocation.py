@@ -155,16 +155,23 @@ class PointAllocationProcess:
         return None
     
 
-    def exampleRun_s1(self, numP, ratio, sample_index, experiment_id):
+    def exampleRun_s1(self, numP, ratio, sample_index):
         """
-        Run one seed generation attempt with given parameters and save to structured folder.
-        
+        Runs one seed generation attempt using the inhibition method and saves the result
+        to a structured folder system.
+
         Parameters:
-            numP (int): Number of seeds.
-            ratio (float): Ratio used to calculate inhibition distance.
-            sample_index (int): Index of the current sample (used for CSV naming).
-            experiment_id (str): Unique identifier for this experiment batch.
+            numP (int): Number of seeds to generate.
+            ratio (float): Ratio used to determine inhibition distance relative to theoretical spacing.
+            sample_index (int): Index of the current sample (used for CSV filename).
+
+        Notes:
+            - The output directory structure includes the size of the bounding rectangle, 
+              derived from the polygon’s axis-aligned bounding box.
+            - For irregular or non-rectangular domains, future implementations may require a more accurate
+              or descriptive naming system, such as polygon type, input label, or manually defined ID.
         """
+
         # Calculate area and distances
         Area = self.getAreaQUAD()
         seedMaxDis = self.SeedMaxDis(Area, numP)
@@ -188,37 +195,61 @@ class PointAllocationProcess:
             if len(ind) == 0:
                 X[i, :] = [sx, sy]
                 i += 1
+        # Determin size of the bounding quadrilateral
+        width= self.maxx - self.minx
+        height= self.maxy - self.miny
+      # Create experiment ID using timestamp
+        experiment_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # Directory and filename structure
-        base_dir = os.path.join("assetss", "csvFile", f"experiment_{experiment_id}")
+        # Build full directory path with size and experiment ID
+        base_dir = os.path.join("assetss", "csvFile", f"{width}x{height}_{experiment_id}")
         ratio_dir = os.path.join(base_dir, f"ratio_{ratio:.2f}")
+
+        # Create folders if they don't exist
         os.makedirs(ratio_dir, exist_ok=True)
 
+        # Save file using sample index
         csv_filename = os.path.join(ratio_dir, f"{sample_index}.csv")
         np.savetxt(csv_filename, X, delimiter=",")
         print(f"File saved as {csv_filename}")
 
-if __name__ == "__main__":
+def run_example_50x50():
+     # Define parameters
     typeNumb=5
     ratio=[0.1 + 0.01 * i for i in range(50)]  # 0.1 to 0.59
+    
+    #numP,shape of the polygon are picked to be these values because 
     numP=314
+
+    # Define the vertices of the polygon (rectangle in this case)
     xp=[0, 50, 50, 0,0]
     yp=[0, 0, 50, 50,0]
+
     # Create the PoissonProcess object( Refer to class for functionalities)
     Run= PointAllocationProcess(xp,yp)
 
-    """ for r in ratio:
+    for ratio_index, r in enumerate(ratio):
         for i in range(typeNumb):
-         #Take the current time
-         time1 = time.time()
-         Run.exampleRun(numP,r)
-        #Take the current time
-        time2 = time.time()
-        #Find time Difference
-        timeDiff = time2 - time1
-        #Find average time by taking time diff divided by typeNumb """
-    experiment_id = datetime.now().strftime("%Y%m%d_%H%M%S")
+            Run.exampleRun_s1(numP, r, i)
+
+def run_example_70x50():
+    # Define parameters
+    typeNumb=5
+    ratio=[0.1 + 0.01 * i for i in range(50)]  # 0.1 to 0.59
+    
+    #numP,shape of the polygon are picked to be these values because 
+    numP=314
+
+    # Define the vertices of the polygon (rectangle in this case)
+    xp=[0, 70, 70, 0,0]
+    yp=[0, 0, 50, 50,0]
+
+    # Create the PoissonProcess object( Refer to class for functionalities)
+    Run= PointAllocationProcess(xp,yp)
 
     for ratio_index, r in enumerate(ratio):
         for i in range(typeNumb):
-            Run.exampleRun_s1(numP, r, i, experiment_id)
+            Run.exampleRun_s1(numP, r, i)
+
+if __name__ == "__main__":
+   run_example_70x50()
