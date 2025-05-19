@@ -6,7 +6,7 @@ import os
 from datetime import datetime
 import time
 class PointAllocationProcess:
-    def __init__(self, xp, yp):
+    def __init__(self, xp, yp,method='SSI'):
         """
         Initialise the Process with the polygon vertices.
         
@@ -18,6 +18,7 @@ class PointAllocationProcess:
         self.yp = yp
         self.minx, self.maxx = min(xp), max(xp) # Min and max x-coordinates of the polygon 
         self.miny, self.maxy = min(yp), max(yp) # Min and max y-coordinates of the polygon
+        self.method=method # Method to be used for point generation
         
     def generate_points(self, n):
         """
@@ -195,23 +196,25 @@ class PointAllocationProcess:
             if len(ind) == 0:
                 X[i, :] = [sx, sy]
                 i += 1
-        # Determin size of the bounding quadrilateral
-        width= self.maxx - self.minx
-        height= self.maxy - self.miny
-      # Create experiment ID using timestamp
-        experiment_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-        # Build full directory path with size and experiment ID
-        base_dir = os.path.join("assetss", "csvFile", f"{width}x{height}_{experiment_id}")
-        ratio_dir = os.path.join(base_dir, f"ratio_{ratio:.2f}")
+        # Determine size of the bounding quadrilateral
+        width = self.maxx - self.minx
+        height = self.maxy - self.miny
 
-        # Create folders if they don't exist
-        os.makedirs(ratio_dir, exist_ok=True)
+        base_dir = os.path.join("assetss", "csvFile", f"{width}x{height}", f"numP_{numP}", f"ratio_{ratio:.2f}")
+        os.makedirs(base_dir, exist_ok=True)
 
-        # Save file using sample index
-        csv_filename = os.path.join(ratio_dir, f"{sample_index}.csv")
-        np.savetxt(csv_filename, X, delimiter=",")
-        print(f"File saved as {csv_filename}")
+        # Count how many files already exist for this method
+        existing_files = [f for f in os.listdir(base_dir) if f.startswith(self.method) and f.endswith('.csv')]
+        next_index = len(existing_files)
+
+        # Save using method name + simple index (e.g. SSI_0.csv, SSI_1.csv, etc.)
+        filename = f"{self.method}_{next_index}.csv"
+        csv_path = os.path.join(base_dir, filename)
+
+        np.savetxt(csv_path, X, delimiter=",")
+        print(f"File saved as {csv_path}")
+
 
 def run_example_50x50():
      # Define parameters
@@ -238,7 +241,7 @@ def run_example_70x50():
     ratio=[0.1 + 0.01 * i for i in range(50)]  # 0.1 to 0.59
     
     #numP,shape of the polygon are picked to be these values because 
-    numP=314
+    numP=317
 
     # Define the vertices of the polygon (rectangle in this case)
     xp=[0, 70, 70, 0,0]
