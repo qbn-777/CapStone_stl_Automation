@@ -4,9 +4,12 @@ import math
 from scipy.spatial.distance import pdist
 import os
 from datetime import datetime
+from multiprocessing import Process
 import time
+import csv
+
 class PointAllocationProcess:
-    def __init__(self, xp, yp,method='SSI'):
+    def __init__(self, xp, yp,method='NotDefinedAllogrithm'):
         """
         Initialise the Process with the polygon vertices.
         
@@ -91,6 +94,10 @@ class PointAllocationProcess:
             numP (int): Number of seeds.
             ratio (float): Ratio of the area to be covered.
         """
+
+        # Define Allogrithm to be used
+        self.method="SSI" #Simple Seed Inhibition
+
         # Get the area of the Square/Rectangle
         # Can replace this with a method that calculates the area of any polygon
         # Or input directly area 
@@ -156,15 +163,17 @@ class PointAllocationProcess:
         return None
     
 
-    def exampleRun_s1(self, numP, ratio, sample_index):
+    def exampleRun_SSI(self, numP, ratio, timeout):
+
         """
-        Runs one seed generation attempt using the inhibition method and saves the result
-        to a structured folder system.
+        Runs one seed generation attempt using the SSI method and saves the result
+        to a structured folder system for a rectangle or square.
+        This method is designed to be called multiple times with different parameters
 
         Parameters:
             numP (int): Number of seeds to generate.
             ratio (float): Ratio used to determine inhibition distance relative to theoretical spacing.
-            sample_index (int): Index of the current sample (used for CSV filename).
+           
 
         Notes:
             - The output directory structure includes the size of the bounding rectangle, 
@@ -172,6 +181,8 @@ class PointAllocationProcess:
             - For irregular or non-rectangular domains, future implementations may require a more accurate
               or descriptive naming system, such as polygon type, input label, or manually defined ID.
         """
+        # Define the method to be used
+        self.method = "SSI"
 
         # Calculate area and distances
         Area = self.getAreaQUAD()
@@ -185,7 +196,14 @@ class PointAllocationProcess:
         X[0, :] = point
         i = 1
 
+        # Start timing only after the first valid seed
+        start_time = time.time()
+
         while i < numP:
+            if time.time() - start_time > timeout:
+                print(f" Timeout: ratio {ratio:.2f} | sample {i+1}")
+                return "Timeout",time.time() - start_time
+            
             point = self.generate_points(1)[0]
             sx, sy = point[0], point[1]
 
@@ -196,6 +214,9 @@ class PointAllocationProcess:
             if len(ind) == 0:
                 X[i, :] = [sx, sy]
                 i += 1
+        
+        #Take the time after the last point is generated
+        total_time = time.time() - start_time
 
         # Determine size of the bounding quadrilateral
         width = self.maxx - self.minx
@@ -215,26 +236,97 @@ class PointAllocationProcess:
         np.savetxt(csv_path, X, delimiter=",")
         print(f"File saved as {csv_path}")
 
+        return "Completed", total_time  
+ 
+def run_example_50x50_1():
+    typeNumb = 5
+    timeout =  60 # seconds
+    ratio_list = [0.1 + 0.01 * i for i in range(50)]
+    numP = 314
+    xp = [0, 50, 50, 0, 0]
+    yp = [0, 0, 50, 50, 0]
+
+    Run = PointAllocationProcess(xp, yp)
+    Run.method = "SSI"  # replace if using other algorithms
+
+    width = max(xp) - min(xp)
+    height = max(yp) - min(yp)
+
+    log = [("Method", "numP", "Width", "Height", "Ratio", "Sample Index", "Time (s)", "Status")]
+
+    for ratio in ratio_list:
+        for i in range(typeNumb):
+            status, run_time = Run.exampleRun_SSI(numP, ratio,timeout=timeout)
+            log.append((Run.method, numP, width, height, ratio, i, round(run_time, 4), status))
+
+            if status == "Timeout":
+                print(f"Timeout occurred for ratio {ratio:.2f}")
+                break
+    print(log)
+    base_log_dir = os.path.join("assetss", "csvFile")
+    os.makedirs(base_log_dir, exist_ok=True)
+
+    log_filename = f"runtime_log_{Run.method}_{numP}_{width}x{height}.csv"
+    log_path = os.path.join(base_log_dir, log_filename)
+
+    with open(log_path, "w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerows(log)
+
+    print(f" Runtime log saved to {log_path}")
 
 def run_example_50x50():
-     # Define parameters
-    typeNumb=5
-    ratio=[0.1 + 0.01 * i for i in range(50)]  # 0.1 to 0.59
-    
-    #numP,shape of the polygon are picked to be these values because 
-    numP=314
+    typeNumb = 100
+    timeout = 5 * 60  # 5 minutes
+    ratio_list = [0.1 + 0.01 * i for i in range(50)]
+    numP = 314
+    xp = [0, 50, 50, 0, 0]
+    yp = [0, 0, 50, 50, 0]
 
-    # Define the vertices of the polygon (rectangle in this case)
-    xp=[0, 50, 50, 0,0]
-    yp=[0, 0, 50, 50,0]
+    Run = PointAllocationProcess(xp, yp)
+    Run.method = "SSI"
 
-    # Create the PoissonProcess object( Refer to class for functionalities)
-    Run= PointAllocationProcess(xp,yp)
+    width = max(xp) - min(xp)
+    height = max(yp) - min(yp)
 
-    for ratio_index, r in enumerate(ratio):
-        for i in range(typeNumb):
-            Run.exampleRun_s1(numP, r, i)
+    # prepare our in-memory log
+    log = [("Method", "numP", "Width", "Height",
+            "Ratio", "Sample Index", "Time (s)", "Status")]
 
+    try:
+        for ratio in ratio_list:
+            for i in range(typeNumb):
+                status, run_time = Run.exampleRun_SSI(numP, ratio, timeout)
+                log.append((
+                    Run.method,
+                    numP,
+                    width,
+                    height,
+                    f"{ratio:.2f}",
+                    i,
+                    f"{run_time:.4f}",
+                    status
+                ))
+                if status == "Timeout":
+                    print(f"⏱  Timeout at ratio {ratio:.2f}, sample {i}")
+                    break  # stop further samples at this ratio
+    except KeyboardInterrupt:
+        print("\n🛑  Interrupted by user — saving partial log…")
+    finally:
+        # no matter what happened (finish or interrupt), write out the CSV:
+        base_log_dir = os.path.join("assetss", "csvFile")
+        os.makedirs(base_log_dir, exist_ok=True)
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        log_filename = (
+            f"runtime_log_{Run.method}_{numP}_"
+            f"{width}x{height}_{timestamp}.csv"
+        )
+        log_path = os.path.join(base_log_dir, log_filename)
+        with open(log_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerows(log)
+        print(f"✅  Runtime log saved to {log_path}")
+        
 def run_example_70x50():
     # Define parameters
     typeNumb=5
@@ -252,7 +344,7 @@ def run_example_70x50():
 
     for ratio_index, r in enumerate(ratio):
         for i in range(typeNumb):
-            Run.exampleRun_s1(numP, r, i)
+            Run.exampleRun_SSi(numP, r, i)
 
 if __name__ == "__main__":
-   run_example_70x50()
+   run_example_50x50()
