@@ -289,12 +289,15 @@ def run_example_50x50():
     width = max(xp) - min(xp)
     height = max(yp) - min(yp)
 
-    # prepare our in-memory log
+    # prepare log object
+    # This will be a list of tuples
     log = [("Method", "numP", "Width", "Height",
             "Ratio", "Sample Index", "Time (s)", "Status")]
 
     try:
         for ratio in ratio_list:
+            # If successful this loop will run typeNumb times
+            # If timeout occurs, it will break out of the loop
             for i in range(typeNumb):
                 status, run_time = Run.exampleRun_SSI(numP, ratio, timeout)
                 log.append((
@@ -307,11 +310,14 @@ def run_example_50x50():
                     f"{run_time:.4f}",
                     status
                 ))
+
                 if status == "Timeout":
                     print(f"⏱  Timeout at ratio {ratio:.2f}, sample {i}")
                     break  # stop further samples at this ratio
+
     except KeyboardInterrupt:
         print("\n🛑  Interrupted by user — saving partial log…")
+
     finally:
         # no matter what happened (finish or interrupt), write out the CSV:
         base_log_dir = os.path.join("assetss", "csvFile")
