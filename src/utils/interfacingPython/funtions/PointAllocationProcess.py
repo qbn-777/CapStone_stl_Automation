@@ -3,10 +3,9 @@ from matplotlib.path import Path
 import math
 from scipy.spatial.distance import pdist
 import os
-from datetime import datetime
-from multiprocessing import Process
+
 import time
-import csv
+
 
 class PointAllocationProcess:
     def __init__(self, xp, yp,method='NotDefinedAllogrithm'):

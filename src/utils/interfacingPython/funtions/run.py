@@ -1,9 +1,4 @@
 import PointAllocationProcess as Process
-import os, time, csv, numpy as np
-from scipy.spatial.distance import pdist
-from matplotlib.path import Path
-
-
 import os, csv
 from datetime import datetime
 
@@ -62,12 +57,12 @@ def run_example_50x50():
 
     # always write one runtime_log CSV
     base = os.path.join("assetss","csvFile")
-    os.makedirs(base, exist_ok=True)
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
-    fn = f"runtime_log_{runner.method}_{numP}_{w}x{h}_{ts}.csv"
+    os.makedirs(base, exist_ok=True) # Ensure the directory exists
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S") # Timestamp for the filename
+    fn = f"runtime_log_{runner.method}_{numP}_{w}x{h}_{ts}.csv" # Filename with method, numP, width, height, and timestamp
     path = os.path.join(base, fn)
     with open(path,"w",newline="") as f:
-        csv.writer(f).writerows(log)
+        csv.writer(f).writerows(log) # Write the log to the CSV file
 
     print(f"✅ Runtime log saved to {path}")
 
