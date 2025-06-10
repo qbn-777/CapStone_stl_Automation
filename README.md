@@ -1,4 +1,4 @@
-Automated Voronoi‑Honeycomb Pipeline
+#Automated Voronoi‑Honeycomb Pipeline
 
 A lightweight, proof‑of‑concept workflow for generating, organising and exporting Voronoi‑based, disordered honeycomb lattices that are ready for 3‑D printing or finite‑element analysis.The project is split into three independent but chainable modules:
 
